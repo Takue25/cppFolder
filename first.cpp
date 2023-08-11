@@ -1,29 +1,72 @@
-#include <iostream>
+#include <QApplication>
+#include <QWidget>
+#include <QLabel>
+#include <QPushButton>
+#include <QLineEdit>
+#include <QVBoxLayout>
+#include <QMessageBox>
 #include <cstdlib>
 #include <ctime>
 
-int main() {
-    srand(time(0)); // seed random number generator
-    int secretNumber = rand() % 100 + 1; // random number between 1 and 100
-    int guess = 0;
-    int numGuesses = 0;
+class GuessNumberGame : public QWidget {
+    Q_OBJECT
 
-    std::cout << "Welcome to Guess the Number!" << std::endl;
-    std::cout << "I'm thinking of a number between 1 and 100." << std::endl;
+public:
+    GuessNumberGame(QWidget *parent = 0) : QWidget(parent) {
+        srand(time(0));
+        secretNumber = rand() % 100 + 1;
+        numGuesses = 0;
 
-    while (guess != secretNumber) {
-        std::cout << "Enter your guess: ";
-        std::cin >> guess;
+        QLabel *titleLabel = new QLabel("Welcome to Guess the Number!");
+        QLabel *instructionLabel = new QLabel("I'm thinking of a number between 1 and 100.");
+        guessLabel = new QLabel("Enter your guess: ");
+        guessLineEdit = new QLineEdit;
+        submitButton = new QPushButton("Submit Guess");
+
+        QVBoxLayout *layout = new QVBoxLayout;
+        layout->addWidget(titleLabel);
+        layout->addWidget(instructionLabel);
+        layout->addWidget(guessLabel);
+        layout->addWidget(guessLineEdit);
+        layout->addWidget(submitButton);
+
+        setLayout(layout);
+
+        connect(submitButton, SIGNAL(clicked()), this, SLOT(checkGuess()));
+    }
+
+private slots:
+    void checkGuess() {
+        int guess = guessLineEdit->text().toInt();
         numGuesses++;
 
         if (guess > secretNumber) {
-            std::cout << "Your guess is too high." << std::endl;
+            guessLabel->setText("Your guess is too high.");
         } else if (guess < secretNumber) {
-            std::cout << "Your guess is too low." << std::endl;
+            guessLabel->setText("Your guess is too low.");
+        } else {
+            QString message = "Congratulations! You guessed the number in " + QString::number(numGuesses) + " tries.";
+            QMessageBox::information(this, "Congratulations!", message);
+            QApplication::quit();
         }
     }
 
-    std::cout << "Congratulations! You guessed the number in " << numGuesses << " tries." << std::endl;
+private:
+    int secretNumber;
+    int numGuesses;
+    QLabel *guessLabel;
+    QLineEdit *guessLineEdit;
+    QPushButton *submitButton;
+};
 
-    return 0;
+int main(int argc, char *argv[]) {
+    QApplication app(argc, argv);
+
+    GuessNumberGame game;
+    game.setWindowTitle("Guess the Number Game");
+    game.show();
+
+    return app.exec();
 }
+
+#include "main.moc"
